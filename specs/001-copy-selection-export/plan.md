@@ -41,7 +41,7 @@ consistent. Everything is local; no native helper, no network, no runtime depend
 | Principle | Status | How the plan satisfies it |
 |-----------|--------|---------------------------|
 | I. Privacy-first, local-only | PASS | No host permissions, no `fetch` or remote code, CSP restricted to `'self'`, `data_collection_permissions: none` |
-| II. Minimal permissions | PASS (justified) | `storage`, `activeTab`, `scripting`, `downloads`, `notifications`; each justified in [research.md](research.md). No host permissions. |
+| II. Minimal permissions | PASS (justified) | `storage`, `activeTab`, `scripting`, `downloads`, `notifications`, `menus`; each justified in [research.md](research.md). No host permissions. |
 | III. Non-destructive writes | PASS | Original file is only read; export is a new file via save-as; clips cleared only after confirmed save; all failures notify the user |
 | IV. Rebindable shortcut | PASS | Declared via `commands` with suggested key `Alt+Shift+C`; no key handling in content code |
 | V. Simplicity & plain text | PASS | No native helper, no bundler, no runtime dependency, plain-text clips, `.md` output |

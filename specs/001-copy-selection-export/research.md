@@ -76,3 +76,4 @@ All Technical Context unknowns are resolved below.
 | `scripting` | Running the selection-reading function in that tab |
 | `downloads` | Guaranteed save-as dialog with pre-filled name and success detection (FR-010, FR-011) |
 | `notifications` | Stating the outcome and reason after the shortcut (FR-007) |
+| `menus` | The "Add selection to CopyToDoc" right-click item (FR-022). Clicking it grants `activeTab` for that tab like the shortcut does, so no host permission is added. The permission shows no extra install warning |

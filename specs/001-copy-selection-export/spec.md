@@ -22,6 +22,13 @@
 - Q: Where should the clip counter be shown? → A: On the toolbar button's badge at all times (hidden when there are no clips); the brief ✓ / ! confirmation replaces it for about 2 seconds.
 - Q: Can the page URL be included in the exported file? → A: Yes. The page title and URL are stored with each clip when it is collected. The popup has an "Include source links" checkbox next to Export, unchecked by default. When checked, each clip is followed by a Markdown link `[page title](url)`. Firefox's own save dialog cannot hold extra controls, so the checkbox sits in the popup.
 
+### Session 2026-11-24 (update: edit, reorder, undo, right-click)
+
+- Q: How are clips edited? → A: Inline. Each clip has an Edit button that turns it into a text box with Save and Cancel. The source (page title and URL) is kept.
+- Q: How are clips moved? → A: Up and Down buttons on each clip; Up is disabled on the first clip and Down on the last.
+- Q: What can be undone? → A: Only the last action (remove, edit, move, start over, clear after export), through an Undo button in the popup. Adding a clip or loading a file ends the undo window.
+- Q: Should there be a right-click way to add a clip? → A: Yes: "Add selection to CopyToDoc" in the page context menu when text is selected. It needs the extra `menus` permission, accepted and justified in research.md.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Load an existing Markdown file as the target (Priority: P1)
@@ -58,6 +65,7 @@ While reading a web page, the user selects some text and presses Alt+Shift+C. Th
 4. **Given** no file is loaded, **When** the user presses Alt+Shift+C with text selected, **Then** the clip is still collected into an empty document and the user can load a file later (the loaded content then goes first).
 5. **Given** clips exist, **When** the user looks at the toolbar button, **Then** its badge shows the number of clips; with no clips the badge is empty; after the brief ✓ / ! confirmation the count returns.
 6. **Given** text is selected on a page, **When** the user adds it, **Then** the page title and URL are stored with the clip (never sent anywhere).
+7. **Given** text is selected on a page, **When** the user right-clicks and chooses "Add selection to CopyToDoc", **Then** it is added exactly as with the shortcut (same confirmation, source and badge). The menu item appears only when text is selected.
 
 ---
 
@@ -93,6 +101,10 @@ The user can see the clips collected since loading, remove a single clip added b
 1. **Given** clips exist, **When** the user opens the extension, **Then** the clips are listed in order, clearly separate from the loaded file content.
 2. **Given** the list is shown, **When** the user removes one clip, **Then** only that clip is removed and the loaded content cannot be removed this way.
 3. **Given** clips exist, **When** the user chooses to start over and confirms, **Then** all clips are discarded.
+4. **Given** a clip is listed, **When** the user chooses Edit, changes the text and saves, **Then** that clip shows the new text at the same position with its source unchanged; Cancel leaves it as it was; saving blank text or text over 1 MB is refused with a message.
+5. **Given** several clips, **When** the user presses Up or Down on a clip, **Then** it swaps places with its neighbour and the export uses the new order; Up is unavailable on the first clip and Down on the last.
+6. **Given** the user just removed, edited or moved a clip, started over, or cleared the clips after an export, **When** they press Undo, **Then** the state from before that action returns (including the loaded file if start over removed it) and Undo disappears.
+7. **Given** an undoable action was done, **When** the user adds a clip or loads a file, **Then** Undo is no longer offered, so it can never silently drop a newer change.
 
 ---
 
@@ -109,6 +121,9 @@ The user can see the clips collected since loading, remove a single clip added b
 - Another program or Firefox already uses Alt+Shift+C: the user can assign a different shortcut.
 - Selected text containing Markdown special characters or multiple lines: kept exactly as selected.
 - Export interrupted or cancelled: the loaded content and clips are kept.
+- Undo after the popup was closed and reopened: still available until the next clip is added or file loaded.
+- Right-click on a page where the selection cannot be read: same message as with the shortcut.
+- Editing a clip while a new clip is collected: the edit applies to the clip with that identity, nothing is lost.
 
 ## Requirements *(mandatory)*
 
@@ -133,10 +148,16 @@ The user can see the clips collected since loading, remove a single clip added b
 - **FR-017**: The toolbar button MUST show the number of collected clips as a badge (empty when there are none); the brief confirmation badge temporarily replaces it.
 - **FR-018**: The system MUST store the page title and URL with each clip, keep them local (FR-015), and write them to the export only when the user checks "Include source links" (unchecked by default), as a Markdown link `[page title](url)` after the clip.
 
+- **FR-019**: Users MUST be able to edit the text of a single clip (blank text and text over 1 MB are refused); the clip keeps its position and source.
+- **FR-020**: Users MUST be able to move a clip one place up or down; the export MUST follow the displayed order.
+- **FR-021**: Users MUST be able to undo the last remove, edit, move, start over or clear-after-export. Only one step is kept, and adding a clip or loading a file discards it.
+- **FR-022**: The system MUST offer "Add selection to CopyToDoc" in the page context menu when text is selected, behaving like the shortcut (FR-003, FR-007, FR-018). It uses the `menus` permission and nothing else new.
+
 ### Key Entities
 
 - **Loaded File**: The existing Markdown file the user chose. Attributes: file name and its content as it was when loaded. Never modified.
 - **Clip**: A piece of text the user selected on a page. Attributes: the text, optionally the page title and URL it came from, and its position among the clips.
+- **Undo snapshot**: The clips (and loaded file, if it was removed) as they were before the last undoable action. One at most; stored locally.
 - **Document**: The loaded file's content followed by all clips in order. This is what gets exported.
 - **Export**: The Markdown file produced from the document at a moment in time.
 

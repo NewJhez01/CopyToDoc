@@ -28,6 +28,17 @@ One piece of selected text.
 
 Position is the array index in `state.clips`; new clips are appended at the end (FR-003, FR-005).
 
+### UndoSnapshot
+`state.undo`, optional. One level only.
+
+| Field | Type | Rules |
+|-------|------|-------|
+| `label` | string | Short action name shown on the button: `remove`, `edit`, `move`, `start over`, `clear`. |
+| `clips` | Clip[] | The clips as they were before the action. |
+| `loadedFile` | LoadedFile or null, optional | Present only when the action removed the loaded file (start over with the file box ticked). |
+
+Set by remove, edit, move, start over and clear; removed by undo, by adding a clip and by loading a file.
+
 ### Document (derived, not stored)
 `composeDocument(loadedFile?.content ?? "", clips, { includeSources })`. Rules:
 - Base content is emitted unchanged.
@@ -44,11 +55,14 @@ A Blob created from the Document at click time, saved as a new file. Suggested n
 
 | Action | Precondition | Effect |
 |--------|--------------|--------|
-| Add clip | Non-blank selection, size OK | Append clip. |
-| Remove clip | Clip exists | Remove only that clip. Loaded content cannot be removed this way. |
-| Load file | Valid text file within limit | Set `loadedFile`. If clips exist, the user chooses keep (clips stay, now after the new content) or discard; cancel changes nothing. |
+| Add clip | Non-blank selection, size OK | Append clip. Removes `undo`. |
+| Remove clip | Clip exists | Remove only that clip. Loaded content cannot be removed this way. Sets `undo`. |
+| Edit clip | Clip exists; new text non-blank and at most 1 MB | Replace `text` only (`id`, `url`, `title`, position unchanged). Sets `undo`. |
+| Move clip | Clip exists; target position inside the list | Swap with the neighbour above or below. Sets `undo`. |
+| Undo | `undo` present | Restore `clips` (and `loadedFile` if present in the snapshot), then remove `undo`. |
+| Load file | Valid text file within limit | Set `loadedFile` and remove `undo`. If clips exist, the user chooses keep (clips stay, now after the new content) or discard; cancel changes nothing. |
 | Export | At least one clip | Save Document. On confirmed save, ask "Clear clips now?" (default Yes). |
-| Start over | User confirms | Clear all clips; optionally clear `loadedFile`. |
+| Start over | User confirms | Clear all clips; optionally clear `loadedFile`. Sets `undo`. |
 
 ## Validation summary
 

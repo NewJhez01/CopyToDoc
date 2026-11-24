@@ -10,7 +10,7 @@ User-facing and browser-facing interfaces of the extension.
 | `browser_specific_settings.gecko.id` | fixed add-on ID (required for stable storage and signing) |
 | `browser_specific_settings.gecko.strict_min_version` | `140.0` |
 | `browser_specific_settings.gecko.data_collection_permissions` | `{ "required": ["none"] }` |
-| `permissions` | `storage`, `activeTab`, `scripting`, `downloads`, `notifications` |
+| `permissions` | `storage`, `activeTab`, `scripting`, `downloads`, `notifications`, `menus` |
 | `host_permissions` | none |
 | `background` | `{ "scripts": ["src/background/background.js"], "type": "module" }` |
 | `action` | toolbar button with `default_popup` showing the manager page |
@@ -21,6 +21,12 @@ User-facing and browser-facing interfaces of the extension.
 | Name | Default | Behavior |
 |------|---------|----------|
 | `collect-selection` | `Alt+Shift+C` (rebindable in Firefox shortcut settings) | Read selection in active tab (all frames), append as clip, give feedback |
+
+## Context menu
+
+| Item | Contexts | Behavior |
+|------|----------|----------|
+| `Add selection to CopyToDoc` | `selection` | Same as the keyboard command: read selection through `activeTab` (granted by the click), append clip with the tab's title and URL, same feedback and badge |
 
 ### Outcomes and feedback
 
@@ -40,7 +46,8 @@ Badge clears after about 2 seconds, then returns to the clip count: the badge sh
 |---------|----------|------|
 | Load file | File picker for `.md`, `.markdown`, `.txt`; validates; shows name | FR-001, FR-002, FR-014 |
 | Load with existing clips | Dialog: keep clips / discard clips / cancel; warns that discarding unexported clips loses them | Clarification 2 |
-| Clip list | Clips in order, visually separate from loaded content; per-clip remove | FR-012 |
+| Clip list | Clips in order, visually separate from loaded content; per-clip Remove, Edit (inline text box with Save and Cancel), Up and Down | FR-012, FR-019, FR-020 |
+| Undo | Button "Undo <action>" shown only while an undo snapshot exists | FR-021 |
 | Export | Save-as dialog with pre-filled `<name>-updated.md`; refused with message if no clips. Checkbox "Include source links" (unchecked by default) next to the button is sent as `includeSources` | FR-008 to FR-010, FR-018 |
 | After successful save | Prompt "Clear clips now?" default Yes | FR-011 |
 | Start over | Confirm; clears clips, optionally the loaded file | FR-012 |

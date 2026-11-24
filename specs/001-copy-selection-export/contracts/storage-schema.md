@@ -1,7 +1,7 @@
 # Contract: Storage Schema
 
 Single key `state` in `browser.storage.local`. **All writes go through the background page**: the
-manager page sends named operations (`loadFile`, `removeClip`, `clearClips`) by message, and the
+manager page sends named operations (`loadFile`, `removeClip`, `editClip`, `moveClip`, `undo`, `clearClips`) by message, and the
 background page applies them through its single serialized queue, so a clip added by the shortcut
 can never be lost to a simultaneous change. The manager page only reads state (via
 `src/storage/store.js`) and refreshes on `storage.onChanged`.
@@ -29,6 +29,7 @@ can never be lost to a simultaneous change. The manager page only reads state (v
 - Missing `state` is treated as `{ version: 1, loadedFile: null, clips: [] }`.
 - All writes read-modify-write the whole record through a single serialized queue in the
   background page. The manager page never writes directly and reacts to `storage.onChanged`.
+- `undo` is optional: `{ label, clips, loadedFile? }`, see data-model.md. Written inside the same record by the same queue.
 - Size limits: `loadedFile.content` ≤ 5 MB, each `clips[].text` ≤ 1 MB.
 - Two small bookkeeping keys, written only by the background page: `pendingExport` (id of the
   download in progress) and `exportResult` (`"complete"` or `"interrupted"`, removed by the
