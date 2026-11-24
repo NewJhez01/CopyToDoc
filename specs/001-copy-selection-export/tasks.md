@@ -173,6 +173,25 @@ Single project at the repository root: `manifest.json`, `src/`, `tests/`, `icons
 
 ---
 
+## Phase 9: Clip counter and source links (FR-017, FR-018)
+
+- [X] T054 [P] Write failing tests in `tests/unit/clips.test.js` for `addClip(state, text, { url, title })`: stores `Clip.url` and `Clip.title` when valid, omits a missing or over-long `Clip.url`, collapses newlines and truncates `Clip.title` (data-model.md `Clip.url`, `Clip.title`), and `normalizeState` keeps string `url`/`title` and drops non-string ones
+- [X] T055 [P] Write failing tests in `tests/unit/document.test.js` for `composeDocument(base, clips, { includeSources })`: link `[title](url)` after the clip only when the option is true and a `url` exists, URL used as link text without a title, escaping of `[`, `]`, `\` in the text and of spaces and parentheses in the URL, strings still accepted as clips
+- [X] T056 Implement `Clip.url` and `Clip.title` handling in `src/core/clips.js` (`addClip` third argument, `normalizeState`) and the `includeSources` option in `src/core/document.js` (makes T054 and T055 pass)
+- [X] T057 In `src/background/background.js` pass the active tab's `url` and `title` to `addClip`, and make `exportDocument` accept `includeSources`
+- [X] T058 In `src/background/background.js` keep the toolbar badge equal to the clip count (empty at zero) on start-up and on every state change; the ✓ / ! confirmation overrides it for about 2 seconds and then the count is restored
+- [X] T059 In `src/manager/manager.html`, `manager.css` and `manager.js` add the "Include source links" checkbox (unchecked by default, remembered between popup openings), send it with the export, and show each clip's source below its text
+- [X] T060 Update `README.md` usage, run `npm test` and `npm run lint`
+- [ ] T061 Manually verify in Firefox: badge count after adding and removing clips, confirmation then count again, export with the box unchecked and checked, a page with no title
+
+---
+
+## Phase 10: Integration tests
+
+- [ ] T062 Decide the approach (see the user's request for integration tests), add it to `tasks.md` with concrete tasks, then implement
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

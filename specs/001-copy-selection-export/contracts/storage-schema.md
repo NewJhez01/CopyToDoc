@@ -15,7 +15,7 @@ can never be lost to a simultaneous change. The manager page only reads state (v
     "loadedAt": "2026-11-24T10:30:00.000Z"
   },
   "clips": [
-    { "id": "7b1f6c0e-...", "text": "first selected text" },
+    { "id": "7b1f6c0e-...", "text": "first selected text", "url": "https://example.com/a", "title": "Example A" },
     { "id": "c3d2a9f4-...", "text": "second selected text" }
   ]
 }
