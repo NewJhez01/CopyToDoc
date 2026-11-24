@@ -25,4 +25,4 @@ Get the keys at https://addons.mozilla.org/developers/addon/api/key/. Then open 
 
 1. Click the toolbar button to open the CopyToDoc popup. **Load file…** opens a small tab with the file picker (Firefox closes popups when a picker opens) and closes it after loading. Accepts a `.md`, `.markdown` or `.txt` file (max 5 MB).
 2. Select text on a page and press Alt+Shift+C (rebind under `about:addons` → gear → Manage Extension Shortcuts).
-3. In the popup choose **Export…**; the saved name defaults to `<name>-updated.md`.
+3. In the popup choose **Export…**; the saved name defaults to `<name>-updated.md`. Tick **Include source links in the export** to add a `[page title](url)` line after each clip. The toolbar badge shows how many clips you have.
