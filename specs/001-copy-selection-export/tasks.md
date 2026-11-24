@@ -188,7 +188,13 @@ Single project at the repository root: `manifest.json`, `src/`, `tests/`, `icons
 
 ## Phase 10: Integration tests
 
-- [ ] T062 Decide the approach (see the user's request for integration tests), add it to `tasks.md` with concrete tasks, then implement
+**Approach (decided after a spike):** selenium-webdriver drives a real Firefox through geckodriver. Firefox's own Alt+Shift+C handler and the native save dialog cannot be driven by automation, so the tests build a temporary copy of the extension (the production files are untouched) that adds `host_permissions: ["<all_urls>"]` (stands in for the `activeTab` grant that the shortcut gives), a `test:collect` message that calls `collectSelection()`, and a wrapper that makes `downloads.download` use `saveAs: false` so the file lands in a temporary download folder. The extension page is opened in a tab via Firefox's browser (chrome) context, because WebDriver cannot navigate to `moz-extension://` URLs. The shortcut binding itself stays a manual check (T018).
+
+- [X] T062 Add dev dependencies `selenium-webdriver` and `geckodriver`, an `npm run test:integration` script with `vitest.config.js` (unit only, used by `npm test`) and `vitest.integration.config.js` (Firefox required for the integration run)
+- [X] T063 Create `tests/integration/helpers.js`: build the test copy of the extension into a temp dir, start a local HTTP page server, start Firefox (fixed extension UUID, temp download dir, `--allow-system-access`), install the add-on, open the manager page in a tab, and select text on the page
+- [X] T064 [P] Write `tests/integration/collect.test.js`: collecting adds a clip with text, page title and URL; the popup shows the count; removing a clip and Start over update the list
+- [X] T065 [P] Write `tests/integration/export.test.js`: load a `.md` file, collect two clips, export with and without "Include source links", and check the saved file content, that the original file is unchanged, and that the "Clear clips now?" prompt appears
+- [X] T066 Update `README.md` (how to run integration tests), run `npm test`, `npm run test:integration` and `npm run lint`, then commit
 
 ---
 
