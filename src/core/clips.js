@@ -34,8 +34,25 @@ export function normalizeState(value) {
   return {
     version: 1,
     loadedFile: isValidFile(value.loadedFile) ? value.loadedFile : null,
-    clips: Array.isArray(value.clips) ? value.clips.filter(isValidClip) : [],
+    clips: Array.isArray(value.clips) ? value.clips.filter(isValidClip).map(cleanClip) : [],
   };
+}
+
+const MAX_URL_LENGTH = 2048;
+const MAX_TITLE_LENGTH = 300;
+
+function cleanSource({ url, title } = {}) {
+  const source = {};
+  if (typeof url === "string" && url !== "" && url.length <= MAX_URL_LENGTH) source.url = url;
+  if (typeof title === "string") {
+    const collapsed = title.replace(/\s+/g, " ").trim().slice(0, MAX_TITLE_LENGTH);
+    if (collapsed !== "") source.title = collapsed;
+  }
+  return source;
+}
+
+function cleanClip(clip) {
+  return { id: clip.id, text: clip.text, ...cleanSource(clip) };
 }
 
 export function setLoadedFile(state, file, { keepClips }) {
@@ -46,10 +63,10 @@ export function setLoadedFile(state, file, { keepClips }) {
   };
 }
 
-export function addClip(state, text) {
+export function addClip(state, text, source) {
   const check = validateClipText(text);
   if (!check.ok) return { ok: false, reason: check.reason, error: check.error };
-  const clip = { id: crypto.randomUUID(), text };
+  const clip = { id: crypto.randomUUID(), text, ...cleanSource(source) };
   return { ok: true, state: { ...state, clips: [...state.clips, clip] } };
 }
 

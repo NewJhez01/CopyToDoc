@@ -162,3 +162,46 @@ describe("removeClip", () => {
     expect(removeClip(state, "nope").clips).toEqual(state.clips);
   });
 });
+
+describe("addClip sources", () => {
+  const add = (source) => addClip(createEmptyState(), "text", source).state.clips[0];
+
+  it("stores url and title", () => {
+    const clip = add({ url: "https://example.com/a", title: "Example A" });
+    expect(clip.url).toBe("https://example.com/a");
+    expect(clip.title).toBe("Example A");
+  });
+
+  it("omits url and title when no source is given", () => {
+    const clip = add(undefined);
+    expect("url" in clip).toBe(false);
+    expect("title" in clip).toBe(false);
+  });
+
+  it("omits a missing, non-string or over-long url", () => {
+    expect("url" in add({ title: "T" })).toBe(false);
+    expect("url" in add({ url: 42 })).toBe(false);
+    expect("url" in add({ url: "https://x.test/" + "a".repeat(2100) })).toBe(false);
+  });
+
+  it("collapses newlines and truncates the title to 300 characters", () => {
+    expect(add({ url: "https://x.test/", title: "one\ntwo\r\nthree" }).title).toBe("one two three");
+    expect(add({ url: "https://x.test/", title: "t".repeat(400) }).title).toHaveLength(300);
+  });
+});
+
+describe("normalizeState sources", () => {
+  it("keeps string url/title and drops other types", () => {
+    const state = {
+      version: 1,
+      loadedFile: null,
+      clips: [
+        { id: "1", text: "a", url: "https://x.test/", title: "X" },
+        { id: "2", text: "b", url: 5, title: {} },
+      ],
+    };
+    const result = normalizeState(state);
+    expect(result.clips[0]).toEqual({ id: "1", text: "a", url: "https://x.test/", title: "X" });
+    expect(result.clips[1]).toEqual({ id: "2", text: "b" });
+  });
+});
