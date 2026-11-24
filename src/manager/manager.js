@@ -13,35 +13,96 @@ function setStatus(message, isError = false) {
   $("status").classList.toggle("error", isError);
 }
 
+let editing = null; // { id, draft, error }
+
+function button(label, onClick, { disabled = false, className = "" } = {}) {
+  const el = document.createElement("button");
+  el.type = "button";
+  el.textContent = label;
+  el.disabled = disabled;
+  if (className) el.className = className;
+  el.addEventListener("click", onClick);
+  return el;
+}
+
+async function saveEdit() {
+  const result = await send("editClip", { id: editing.id, text: editing.draft });
+  if (result?.ok) {
+    editing = null;
+    render();
+  } else {
+    editing.error = result?.error ?? "Could not save the change.";
+    render();
+  }
+}
+
+function renderClip(clip, index, total) {
+  const item = document.createElement("li");
+  const body = document.createElement("div");
+  body.className = "clip-body";
+  const actions = document.createElement("div");
+  actions.className = "clip-actions";
+
+  if (editing?.id === clip.id) {
+    const box = document.createElement("textarea");
+    box.className = "clip-edit";
+    box.value = editing.draft;
+    box.rows = 4;
+    box.addEventListener("input", () => {
+      editing.draft = box.value;
+    });
+    body.append(box);
+    if (editing.error) {
+      const error = document.createElement("span");
+      error.className = "clip-error";
+      error.textContent = editing.error;
+      body.append(error);
+    }
+    actions.append(
+      button("Save", () => {
+        editing.draft = box.value;
+        saveEdit();
+      }),
+      button("Cancel", () => {
+        editing = null;
+        render();
+      }),
+    );
+  } else {
+    const text = document.createElement("pre");
+    text.className = "clip-text";
+    text.textContent = clip.text;
+    body.append(text);
+    if (clip.url) {
+      const source = document.createElement("span");
+      source.className = "clip-source";
+      source.textContent = `${clip.title || clip.url} · ${clip.url}`;
+      source.title = clip.url;
+      body.append(source);
+    }
+    actions.append(
+      button("↑", () => send("moveClip", { id: clip.id, direction: -1 }), { disabled: index === 0, className: "move-up" }),
+      button("↓", () => send("moveClip", { id: clip.id, direction: 1 }), { disabled: index === total - 1, className: "move-down" }),
+      button("Edit", () => {
+        editing = { id: clip.id, draft: clip.text, error: null };
+        render();
+      }, { className: "edit" }),
+      button("Remove", () => send("removeClip", { id: clip.id }), { className: "remove" }),
+    );
+  }
+  item.append(body, actions);
+  return item;
+}
+
 function render() {
+  if (editing && !state.clips.some((clip) => clip.id === editing.id)) editing = null;
   $("file-name").textContent = state.loadedFile ? state.loadedFile.name : "None loaded";
   $("clip-count").textContent = String(state.clips.length);
   $("empty-state").hidden = state.clips.length > 0;
-
-  const list = $("clip-list");
-  list.replaceChildren(
-    ...state.clips.map((clip) => {
-      const item = document.createElement("li");
-      const body = document.createElement("div");
-      body.className = "clip-body";
-      const text = document.createElement("pre");
-      text.className = "clip-text";
-      text.textContent = clip.text;
-      body.append(text);
-      if (clip.url) {
-        const source = document.createElement("span");
-        source.className = "clip-source";
-        source.textContent = `${clip.title || clip.url} · ${clip.url}`;
-        source.title = clip.url;
-        body.append(source);
-      }
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "Remove";
-      remove.addEventListener("click", () => send("removeClip", { id: clip.id }));
-      item.append(body, remove);
-      return item;
-    }),
+  $("undo-button").hidden = !state.undo;
+  if (state.undo) $("undo-button").textContent = `Undo ${state.undo.label}`;
+  $("clip-list").replaceChildren(
+    ...state.clips.map((clip, index) => renderClip(clip, index, state.clips.length)),
   );
 }
 
@@ -108,7 +169,7 @@ async function handleExportResult(result) {
   try {
     if (result === "complete") {
       setStatus("Export saved.");
-      if ((await askDialog($("clear-dialog"))) === "yes") await send("clearClips", { clearFile: false });
+      if ((await askDialog($("clear-dialog"))) === "yes") await send("clearClips", { clearFile: false, label: "clear" });
     } else {
       setStatus("Export failed. Your clips are untouched.", true);
     }
@@ -146,6 +207,10 @@ async function handleLoadClick() {
 $("include-sources").checked = localStorage.getItem("includeSources") === "true";
 $("include-sources").addEventListener("change", (event) => {
   localStorage.setItem("includeSources", String(event.target.checked));
+});
+$("undo-button").addEventListener("click", async () => {
+  const result = await send("undo");
+  setStatus(result?.ok ? "Undone." : (result?.error ?? "Nothing to undo."), !result?.ok);
 });
 $("load-button").addEventListener("click", handleLoadClick);
 $("file-input").addEventListener("change", handleFileChosen);

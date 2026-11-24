@@ -103,6 +103,10 @@ h2 { margin: 0; font-size: 1rem; }
   overflow-wrap: anywhere;
 }
 #clip-list li button { padding: 0.15rem 0.5rem; font-size: 0.8rem; }
+#clip-list li button:disabled { opacity: 0.35; cursor: default; }
+.clip-actions { display: grid; grid-template-columns: repeat(2, auto); gap: 0.25rem; }
+.clip-edit { width: 100%; box-sizing: border-box; font: inherit; resize: vertical; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; }
+.clip-error { display: block; margin-top: 0.25rem; color: var(--danger); font-size: 0.8rem; }
 
 .empty {
   margin: 0 0 0.5rem;
