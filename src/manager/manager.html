@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>CopyToDoc</title>
+  <link rel="stylesheet" href="manager.css">
+  <script type="module" src="manager.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>CopyToDoc</h1>
+      <p class="subtitle">Collect selected text into a Markdown file</p>
+    </header>
+
+    <p id="status" role="status" aria-live="polite"></p>
+
+    <section class="card">
+      <div class="row">
+        <div class="file-info">
+          <span class="label">Document</span>
+          <strong id="file-name" class="file-name">None loaded</strong>
+        </div>
+        <button id="load-button" type="button" class="secondary">Load file…</button>
+      </div>
+      <input type="file" id="file-input" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">
+    </section>
+
+    <section class="popup-only">
+      <div class="section-title">
+        <h2>Clips</h2>
+        <span id="clip-count" class="badge">0</span>
+      </div>
+      <ol id="clip-list"></ol>
+      <p id="empty-state" class="empty">No clips yet.<br>Select text on a page and press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>.</p>
+      <div class="actions">
+        <button id="export-button" type="button" class="primary">Export…</button>
+        <button id="start-over-button" type="button" class="secondary">Start over…</button>
+      </div>
+    </section>
+
+    <p class="hint popup-only">
+      Change the shortcut in <code>about:addons</code> → gear icon → <em>Manage Extension Shortcuts</em>.
+    </p>
+  </main>
+
+  <dialog id="load-dialog">
+    <form method="dialog">
+      <p>You already have clips. What should happen to them when you load <strong id="load-dialog-name"></strong>?</p>
+      <p class="warning">Discarding clips that were not exported loses them permanently.</p>
+      <div class="actions">
+        <button value="keep" class="primary">Keep clips</button>
+        <button value="discard" class="danger">Discard clips</button>
+        <button value="cancel" class="secondary" autofocus>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="clear-dialog">
+    <form method="dialog">
+      <p>Export saved. Clear clips now?</p>
+      <div class="actions">
+        <button value="yes" class="primary" autofocus>Yes, clear</button>
+        <button value="no" class="secondary">No, keep them</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="start-over-dialog">
+    <form method="dialog">
+      <p>Remove all clips? Clips that were not exported are lost permanently.</p>
+      <label class="check"><input type="checkbox" id="start-over-file"> Also remove the loaded file</label>
+      <div class="actions">
+        <button value="confirm" class="danger">Start over</button>
+        <button value="cancel" class="secondary" autofocus>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

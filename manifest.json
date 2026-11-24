@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "CopyToDoc",
+  "version": "0.1.2",
+  "description": "Collect selected text with Alt+Shift+C and export it appended to a Markdown file.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "copytodoc@harper-jones.local",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "downloads", "notifications"],
+  "background": {
+    "scripts": ["src/background/background.js"],
+    "type": "module"
+  },
+  "action": {
+    "default_title": "CopyToDoc",
+    "default_icon": "icons/icon.svg",
+    "default_popup": "src/manager/manager.html"
+  },
+  "commands": {
+    "collect-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+C"
+      },
+      "description": "Add the selected text to the document"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
