@@ -3,9 +3,12 @@ import {
   addClip,
   clearClips,
   createEmptyState,
+  editClip,
+  moveClip,
   normalizeState,
   removeClip,
   setLoadedFile,
+  undo,
 } from "../../src/core/clips.js";
 import { MAX_CLIP_BYTES } from "../../src/core/validate.js";
 
@@ -203,5 +206,94 @@ describe("normalizeState sources", () => {
     const result = normalizeState(state);
     expect(result.clips[0]).toEqual({ id: "1", text: "a", url: "https://x.test/", title: "X" });
     expect(result.clips[1]).toEqual({ id: "2", text: "b" });
+  });
+});
+
+const clipOf = (id, text, extra = {}) => ({ id, text, ...extra });
+const stateOf = (...clips) => ({ version: 1, loadedFile: null, clips });
+
+describe("editClip", () => {
+  it("replaces only the text and keeps id, source and position", () => {
+    const state = stateOf(clipOf("1", "a"), clipOf("2", "b", { url: "https://x.test/", title: "X" }));
+    const result = editClip(state, "2", "changed");
+    expect(result.ok).toBe(true);
+    expect(result.state.clips).toEqual([
+      clipOf("1", "a"),
+      clipOf("2", "changed", { url: "https://x.test/", title: "X" }),
+    ]);
+  });
+
+  it("refuses blank text, oversized text and unknown ids", () => {
+    const state = stateOf(clipOf("1", "a"));
+    expect(editClip(state, "1", "   ")).toMatchObject({ ok: false, reason: "blank" });
+    expect(editClip(state, "1", "x".repeat(MAX_CLIP_BYTES + 1))).toMatchObject({ ok: false, reason: "too-large" });
+    expect(editClip(state, "nope", "text")).toMatchObject({ ok: false, reason: "not-found" });
+  });
+});
+
+describe("moveClip", () => {
+  const state = stateOf(clipOf("1", "a"), clipOf("2", "b"), clipOf("3", "c"));
+  const order = (result) => result.state.clips.map((clip) => clip.id);
+
+  it("swaps with the neighbour below or above", () => {
+    expect(order(moveClip(state, "1", 1))).toEqual(["2", "1", "3"]);
+    expect(order(moveClip(state, "3", -1))).toEqual(["1", "3", "2"]);
+  });
+
+  it("refuses to move past the ends or an unknown clip", () => {
+    expect(moveClip(state, "1", -1).ok).toBe(false);
+    expect(moveClip(state, "3", 1).ok).toBe(false);
+    expect(moveClip(state, "nope", 1).ok).toBe(false);
+  });
+});
+
+describe("undo", () => {
+  const base = stateOf(clipOf("1", "a"), clipOf("2", "b"));
+
+  it.each([
+    ["remove", removeClip(base, "1")],
+    ["edit", editClip(base, "1", "z").state],
+    ["move", moveClip(base, "1", 1).state],
+    ["start over", clearClips(base)],
+  ])("restores the clips after %s and drops the snapshot", (label, changed) => {
+    expect(changed.undo.label).toBe(label);
+    const result = undo(changed);
+    expect(result.ok).toBe(true);
+    expect(result.state.clips).toEqual(base.clips);
+    expect(result.state.undo).toBeUndefined();
+  });
+
+  it("restores the loaded file when start over removed it", () => {
+    const withFile = { ...base, loadedFile: { name: "n.md", content: "x", loadedAt: "t" } };
+    const cleared = clearClips(withFile, { clearFile: true });
+    expect(cleared.loadedFile).toBeNull();
+    expect(undo(cleared).state.loadedFile).toEqual(withFile.loadedFile);
+  });
+
+  it("uses a custom label for clearing after an export", () => {
+    expect(clearClips(base, { label: "clear" }).undo.label).toBe("clear");
+  });
+
+  it("is refused when there is nothing to undo", () => {
+    expect(undo(base).ok).toBe(false);
+  });
+
+  it("is not set when nothing changed", () => {
+    expect(removeClip(base, "nope").undo).toBeUndefined();
+    expect(clearClips(stateOf()).undo).toBeUndefined();
+  });
+
+  it("is dropped when a clip is added or a file is loaded", () => {
+    const changed = removeClip(base, "1");
+    expect(addClip(changed, "new").state.undo).toBeUndefined();
+    expect(setLoadedFile(changed, { name: "n.md", content: "" }, { keepClips: true }).undo).toBeUndefined();
+  });
+});
+
+describe("normalizeState undo", () => {
+  it("keeps a well-formed snapshot and drops a malformed one", () => {
+    const good = { label: "remove", clips: [clipOf("1", "a")] };
+    expect(normalizeState({ ...stateOf(), undo: good }).undo).toEqual(good);
+    expect(normalizeState({ ...stateOf(), undo: { label: 5, clips: "x" } }).undo).toBeUndefined();
   });
 });
