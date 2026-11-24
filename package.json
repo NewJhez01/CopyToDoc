@@ -1,0 +1,18 @@
+{
+  "name": "copytodoc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox extension that collects selected text and exports it appended to a Markdown file",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "web-ext lint --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' 'package*.json' 'README.md' 'web-ext-artifacts/**' '.specify/**' '.github/**'",
+    "start": "web-ext run --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' '.specify/**' '.github/**'",
+    "build": "web-ext build --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' 'package*.json' '.specify/**' '.github/**' '.env*' 'scripts/**'",
+    "sign": "node --env-file=.env scripts/sign.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^5.1.1",
+    "web-ext": "^10.8.0"
+  }
+}
