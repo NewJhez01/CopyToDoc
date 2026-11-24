@@ -209,7 +209,7 @@ Single project at the repository root: `manifest.json`, `src/`, `tests/`, `icons
 - [X] T071 Add the context-menu item (`menus.create` on install with `contexts: ["selection"]`, `title: "Add selection to CopyToDoc"`, `onClicked` calling the shared `collectSelection(tab)`); change `collectSelection` to accept the tab it is given (shortcut: active tab). Add `"menus"` to `manifest.json` `permissions`
 - [X] T072 In `src/manager/manager.html`, `manager.css` and `manager.js`: per-clip Edit (inline textarea, Save, Cancel, error message on refusal), Up and Down buttons (disabled at the ends), and an "Undo <action>" button shown while `state.undo` exists
 - [X] T073 Extend `tests/integration/collect.test.js`: move a clip down and up, edit a clip, undo a remove, undo start over; check the order is used in the exported file. (The context menu cannot be driven by WebDriver; check it manually in T074.)
-- [ ] T074 Update `README.md`, bump `manifest.json` version, run `npm test`, `npm run test:integration`, `npm run lint`; manually verify in Firefox: right-click item (appears only with a selection, adds the clip, badge and notification), edit, move, undo, and the add-on permission list; then commit
+- [X] T074 Update `README.md`, bump `manifest.json` version, run `npm test`, `npm run test:integration`, `npm run lint`; manually verify in Firefox: right-click item (appears only with a selection, adds the clip, badge and notification), edit, move, undo, and the add-on permission list; then commit
 
 ---
 
