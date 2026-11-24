@@ -182,7 +182,7 @@ Single project at the repository root: `manifest.json`, `src/`, `tests/`, `icons
 - [X] T058 In `src/background/background.js` keep the toolbar badge equal to the clip count (empty at zero) on start-up and on every state change; the ✓ / ! confirmation overrides it for about 2 seconds and then the count is restored
 - [X] T059 In `src/manager/manager.html`, `manager.css` and `manager.js` add the "Include source links" checkbox (unchecked by default, remembered between popup openings), send it with the export, and show each clip's source below its text
 - [X] T060 Update `README.md` usage, run `npm test` and `npm run lint`
-- [ ] T061 Manually verify in Firefox: badge count after adding and removing clips, confirmation then count again, export with the box unchecked and checked, a page with no title
+- [X] T061 Manually verify in Firefox: badge count after adding and removing clips, confirmation then count again, export with the box unchecked and checked, a page with no title
 
 ---
 
