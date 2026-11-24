@@ -1,4 +1,12 @@
-import { addClip, clearClips, removeClip, setLoadedFile } from "../core/clips.js";
+import {
+  addClip,
+  clearClips,
+  editClip,
+  moveClip,
+  removeClip,
+  setLoadedFile,
+  undo,
+} from "../core/clips.js";
 import { outcomeMessage, resolveSelection } from "../core/outcome.js";
 import { composeDocument, suggestExportName } from "../core/document.js";
 import { validateFile } from "../core/validate.js";
@@ -38,9 +46,30 @@ const operations = {
     await mutate((state) => ({ state: removeClip(state, id) }));
     return { ok: true };
   },
-  async clearClips({ clearFile }) {
-    await mutate((state) => ({ state: clearClips(state, { clearFile }) }));
+  async clearClips({ clearFile, label }) {
+    await mutate((state) => ({ state: clearClips(state, { clearFile, label }) }));
     return { ok: true };
+  },
+  async editClip({ id, text }) {
+    const result = await mutate((state) => {
+      const edited = editClip(state, id, text);
+      return edited.ok ? { state: edited.state, ok: true } : { ok: false, error: edited.error };
+    });
+    return { ok: result.ok, error: result.error };
+  },
+  async moveClip({ id, direction }) {
+    const result = await mutate((state) => {
+      const moved = moveClip(state, id, direction);
+      return moved.ok ? { state: moved.state, ok: true } : { ok: false, error: moved.error };
+    });
+    return { ok: result.ok, error: result.error };
+  },
+  async undo() {
+    const result = await mutate((state) => {
+      const restored = undo(state);
+      return restored.ok ? { state: restored.state, ok: true } : { ok: false, error: restored.error };
+    });
+    return { ok: result.ok, error: result.error };
   },
   // Runs here because the popup is destroyed when the save dialog opens in Firefox.
   async exportDocument({ includeSources = false } = {}) {
@@ -141,11 +170,12 @@ browser.storage.onChanged.addListener((changes, area) => {
 });
 showCount();
 
-async function collectSelection() {
+// The shortcut passes no tab (use the active one); the context menu passes the clicked tab.
+async function collectSelection(clickedTab) {
   let frameResults = null;
-  let tab = null;
+  let tab = clickedTab ?? null;
   try {
-    [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    tab ??= (await browser.tabs.query({ active: true, currentWindow: true }))[0];
     frameResults = await browser.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: readSelection,
@@ -172,4 +202,16 @@ async function collectSelection() {
 
 browser.commands.onCommand.addListener((command) => {
   if (command === "collect-selection") collectSelection();
+});
+
+browser.runtime.onInstalled.addListener(() => {
+  browser.menus.create({
+    id: "collect-selection",
+    title: "Add selection to CopyToDoc",
+    contexts: ["selection"],
+  });
+});
+
+browser.menus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "collect-selection") collectSelection(tab);
 });
