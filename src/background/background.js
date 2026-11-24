@@ -89,6 +89,14 @@ browser.downloads.onChanged.addListener(async (delta) => {
   exportUrl = null;
   await writePendingExport(null);
   await writeExportResult(current);
+  if (current === "complete") {
+    await browser.notifications.create({
+      type: "basic",
+      iconUrl: browser.runtime.getURL("icons/icon.svg"),
+      title: "CopyToDoc",
+      message: "Export saved. Open CopyToDoc to clear your clips or keep them.",
+    });
+  }
 });
 
 browser.runtime.onMessage.addListener((message) => {
@@ -103,9 +111,11 @@ let feedbackActive = false;
 async function showCount() {
   if (feedbackActive) return;
   const { clips } = await readState();
-  await browser.action.setBadgeBackgroundColor({ color: "#0060df" });
+  const awaitingAnswer = (await readExportResult()) === "complete";
+  await browser.action.setBadgeBackgroundColor({ color: awaitingAnswer ? "#c77700" : "#0060df" });
   await browser.action.setBadgeTextColor({ color: "#ffffff" });
-  await browser.action.setBadgeText({ text: clips.length > 0 ? String(clips.length) : "" });
+  const text = awaitingAnswer ? "?" : clips.length > 0 ? String(clips.length) : "";
+  await browser.action.setBadgeText({ text });
 }
 
 async function giveFeedback(outcome, count) {
@@ -127,7 +137,7 @@ async function giveFeedback(outcome, count) {
 }
 
 browser.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && changes.state) showCount();
+  if (area === "local" && (changes.state || changes.exportResult)) showCount();
 });
 showCount();
 
