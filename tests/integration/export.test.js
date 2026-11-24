@@ -23,13 +23,16 @@ describe("loading a file and exporting", () => {
   });
   afterAll(() => h?.stop());
 
-  it("exports the original content followed by the clips and source links, then offers to clear", async () => {
+  it("exports the original content followed by the clips in the moved order and source links, then offers to clear", async () => {
+    await h.driver.findElement(By.css("#clip-list li:first-child .move-down")).click();
+    await h.driver.wait(async () => (await h.clipTexts())[0] === "Second selected sentence.", 5000);
     await h.driver.findElement(By.id("include-sources")).click();
     await h.driver.findElement(By.id("export-button")).click();
     const saved = await h.waitForDownload();
     expect(saved.startsWith(ORIGINAL.trimEnd())).toBe(true);
     expect(saved).toContain("First selected sentence.");
     expect(saved).toContain("Second selected sentence.");
+    expect(saved.indexOf("Second selected")).toBeLessThan(saved.indexOf("First selected"));
     expect(saved).toContain(`[Test Page /first](${h.pageUrl}first)`);
     expect(saved).toContain(`[Test Page /second](${h.pageUrl}second)`);
     expect(await readFile(filePath, "utf8")).toBe(ORIGINAL);
