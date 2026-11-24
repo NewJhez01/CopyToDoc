@@ -43,12 +43,12 @@ const operations = {
     return { ok: true };
   },
   // Runs here because the popup is destroyed when the save dialog opens in Firefox.
-  async exportDocument() {
+  async exportDocument({ includeSources = false } = {}) {
     const state = await readState();
     if (state.clips.length === 0) {
       return { ok: false, error: "Nothing to export: there are no clips yet." };
     }
-    const text = composeDocument(state.loadedFile?.content ?? "", state.clips.map((c) => c.text));
+    const text = composeDocument(state.loadedFile?.content ?? "", state.clips, { includeSources });
     // Firefox rejects data: URLs here; a Blob URL owned by this page outlives the popup.
     if (exportUrl) URL.revokeObjectURL(exportUrl);
     exportUrl = URL.createObjectURL(new Blob([text], { type: "text/markdown;charset=utf-8" }));
@@ -98,12 +98,26 @@ browser.runtime.onMessage.addListener((message) => {
 });
 
 let badgeTimer;
+let feedbackActive = false;
+
+async function showCount() {
+  if (feedbackActive) return;
+  const { clips } = await readState();
+  await browser.action.setBadgeBackgroundColor({ color: "#0060df" });
+  await browser.action.setBadgeTextColor({ color: "#ffffff" });
+  await browser.action.setBadgeText({ text: clips.length > 0 ? String(clips.length) : "" });
+}
+
 async function giveFeedback(outcome, count) {
   const success = outcome === "added";
+  feedbackActive = true;
   await browser.action.setBadgeText({ text: success ? "✓" : "!" });
   await browser.action.setBadgeBackgroundColor({ color: success ? "#2e7d32" : "#c62828" });
   clearTimeout(badgeTimer);
-  badgeTimer = setTimeout(() => browser.action.setBadgeText({ text: "" }), 2000);
+  badgeTimer = setTimeout(() => {
+    feedbackActive = false;
+    showCount();
+  }, 2000);
   await browser.notifications.create({
     type: "basic",
     iconUrl: browser.runtime.getURL("icons/icon.svg"),
@@ -112,10 +126,16 @@ async function giveFeedback(outcome, count) {
   });
 }
 
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.state) showCount();
+});
+showCount();
+
 async function collectSelection() {
   let frameResults = null;
+  let tab = null;
   try {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     frameResults = await browser.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
       func: readSelection,
@@ -129,7 +149,7 @@ async function collectSelection() {
 
   try {
     const result = await mutate((state) => {
-      const added = addClip(state, resolved.text);
+      const added = addClip(state, resolved.text, { url: tab?.url, title: tab?.title });
       return added.ok ? { state: added.state, ok: true } : { ok: false, reason: added.reason };
     });
     if (!result.ok) return giveFeedback(result.reason);
