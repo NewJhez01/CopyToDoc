@@ -55,6 +55,46 @@ describe("composeDocument", () => {
   });
 });
 
+describe("composeDocument with source links", () => {
+  const clip = { text: "quote", url: "https://example.com/a", title: "Example A" };
+  const on = { includeSources: true };
+
+  it("adds a Markdown link after the clip when enabled", () => {
+    expect(composeDocument("base\n", [clip], on)).toBe(
+      "base\n\nquote\n\n[Example A](https://example.com/a)\n",
+    );
+  });
+
+  it("writes no link when the option is off or missing", () => {
+    expect(composeDocument("base\n", [clip])).toBe("base\n\nquote\n");
+    expect(composeDocument("base\n", [clip], { includeSources: false })).toBe("base\n\nquote\n");
+  });
+
+  it("uses the url as link text without a title", () => {
+    const bare = { text: "quote", url: "https://example.com/a" };
+    expect(composeDocument("", [bare], on)).toBe(
+      "quote\n\n[https://example.com/a](https://example.com/a)\n",
+    );
+  });
+
+  it("gives no link to clips without a url and still separates clips by a blank line", () => {
+    expect(composeDocument("", [clip, { text: "plain" }, { ...clip, text: "again" }], on)).toBe(
+      "quote\n\n[Example A](https://example.com/a)\n\nplain\n\nagain\n\n[Example A](https://example.com/a)\n",
+    );
+  });
+
+  it("escapes link text and encodes spaces and parentheses in the url", () => {
+    const odd = { text: "q", url: "https://x.test/a b/(c)", title: "[a] \\ b" };
+    expect(composeDocument("", [odd], on)).toBe(
+      "q\n\n[\\[a\\] \\\\ b](https://x.test/a%20b/%28c%29)\n",
+    );
+  });
+
+  it("still accepts plain strings as clips", () => {
+    expect(composeDocument("", ["one"], on)).toBe("one\n");
+  });
+});
+
 describe("suggestExportName", () => {
   it("adds -updated and uses the .md extension", () => {
     expect(suggestExportName("notes.md")).toBe("notes-updated.md");

@@ -6,13 +6,17 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "lint": "web-ext lint --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' 'package*.json' 'README.md' 'web-ext-artifacts/**' '.specify/**' '.github/**'",
-    "start": "web-ext run --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' '.specify/**' '.github/**'",
-    "build": "web-ext build --source-dir . --ignore-files 'tests/**' 'specs/**' 'node_modules/**' 'package*.json' '.specify/**' '.github/**' '.env*' 'scripts/**'",
-    "sign": "node --env-file=.env scripts/sign.mjs"
+    "lint": "web-ext lint --source-dir . --ignore-files 'tests/**' 'vitest*.config.js' 'specs/**' 'node_modules/**' 'package*.json' 'README.md' 'web-ext-artifacts/**' '.specify/**' '.github/**'",
+    "start": "web-ext run --source-dir . --ignore-files 'tests/**' 'vitest*.config.js' 'specs/**' 'node_modules/**' '.specify/**' '.github/**'",
+    "build": "web-ext build --source-dir . --ignore-files 'tests/**' 'vitest*.config.js' 'specs/**' 'node_modules/**' 'package*.json' '.specify/**' '.github/**' '.env*' 'scripts/**'",
+    "sign": "node --env-file=.env scripts/sign.mjs",
+    "test:integration": "vitest run --config vitest.integration.config.js"
   },
   "devDependencies": {
+    "geckodriver": "^8.0.0",
+    "selenium-webdriver": "^4.54.0",
     "vitest": "^5.1.1",
     "web-ext": "^10.8.0"
-  }
+  },
+  "license": "MIT"
 }

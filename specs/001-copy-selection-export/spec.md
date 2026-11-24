@@ -17,6 +17,11 @@
 - Q: What file name should the export suggest by default? → A: The loaded file's name plus "-updated" (e.g. `notes-updated.md`), pre-filled in the save dialog where the user can always change it.
 - Q: Should clips keep page formatting converted to Markdown, or be plain text? → A: Plain text only for now; formatting and links are dropped. Markdown conversion may be a later feature.
 
+### Session 2026-11-24 (update: counter and source links)
+
+- Q: Where should the clip counter be shown? → A: On the toolbar button's badge at all times (hidden when there are no clips); the brief ✓ / ! confirmation replaces it for about 2 seconds.
+- Q: Can the page URL be included in the exported file? → A: Yes. The page title and URL are stored with each clip when it is collected. The popup has an "Include source links" checkbox next to Export, unchecked by default. When checked, each clip is followed by a Markdown link `[page title](url)`. Firefox's own save dialog cannot hold extra controls, so the checkbox sits in the popup.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Load an existing Markdown file as the target (Priority: P1)
@@ -51,6 +56,8 @@ While reading a web page, the user selects some text and presses Alt+Shift+C. Th
 2. **Given** earlier clips exist, **When** the user adds another clip, **Then** earlier clips and the loaded content are unchanged and the new clip comes last.
 3. **Given** no text is selected, **When** the user presses Alt+Shift+C, **Then** nothing is added and the user sees a message that there is no selection.
 4. **Given** no file is loaded, **When** the user presses Alt+Shift+C with text selected, **Then** the clip is still collected into an empty document and the user can load a file later (the loaded content then goes first).
+5. **Given** clips exist, **When** the user looks at the toolbar button, **Then** its badge shows the number of clips; with no clips the badge is empty; after the brief ✓ / ! confirmation the count returns.
+6. **Given** text is selected on a page, **When** the user adds it, **Then** the page title and URL are stored with the clip (never sent anywhere).
 
 ---
 
@@ -69,6 +76,7 @@ The user exports the document. They receive a `.md` file containing the loaded f
 3. **Given** the export was saved successfully, **When** the export finishes, **Then** the user is asked "Clear clips now?" with Yes as the default; choosing Yes removes the clips, choosing No keeps them.
 4. **Given** the user cancels the save dialog, **When** returning to the extension, **Then** the loaded content and clips are unchanged.
 5. **Given** the exported file is saved, **When** the user checks the original file on disk, **Then** it is unchanged.
+6. **Given** "Include source links" is checked, **When** the user exports, **Then** each clip that has a source is followed by a blank line and a Markdown link `[page title](url)`; with the box unchecked (the default) no links are written.
 
 ---
 
@@ -122,11 +130,13 @@ The user can see the clips collected since loading, remove a single clip added b
 - **FR-014**: The system MUST reject files that cannot be read as text, with a clear message, and keep the previous state.
 - **FR-015**: The system MUST NOT send file content, selected text or usage data over the network, and MUST NOT modify the web page.
 - **FR-016**: The system MUST work in Firefox on macOS and Linux.
+- **FR-017**: The toolbar button MUST show the number of collected clips as a badge (empty when there are none); the brief confirmation badge temporarily replaces it.
+- **FR-018**: The system MUST store the page title and URL with each clip, keep them local (FR-015), and write them to the export only when the user checks "Include source links" (unchecked by default), as a Markdown link `[page title](url)` after the clip.
 
 ### Key Entities
 
 - **Loaded File**: The existing Markdown file the user chose. Attributes: file name and its content as it was when loaded. Never modified.
-- **Clip**: A piece of text the user selected on a page. Attributes: the text and its position among the clips.
+- **Clip**: A piece of text the user selected on a page. Attributes: the text, optionally the page title and URL it came from, and its position among the clips.
 - **Document**: The loaded file's content followed by all clips in order. This is what gets exported.
 - **Export**: The Markdown file produced from the document at a moment in time.
 

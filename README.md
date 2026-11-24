@@ -7,6 +7,7 @@ Firefox extension (macOS and Linux). Load a Markdown file, press **Alt+Shift+C**
 ```sh
 npm install
 npm test        # unit tests
+npm run test:integration   # drives a real headless Firefox (needs Firefox installed)
 npm run lint    # web-ext lint
 npm start       # run in a temporary Firefox profile (removed on restart)
 ```
@@ -25,4 +26,6 @@ Get the keys at https://addons.mozilla.org/developers/addon/api/key/. Then open 
 
 1. Click the toolbar button to open the CopyToDoc popup. **Load file…** opens a small tab with the file picker (Firefox closes popups when a picker opens) and closes it after loading. Accepts a `.md`, `.markdown` or `.txt` file (max 5 MB).
 2. Select text on a page and press Alt+Shift+C (rebind under `about:addons` → gear → Manage Extension Shortcuts).
-3. In the popup choose **Export…**; the saved name defaults to `<name>-updated.md`.
+3. In the popup choose **Export…**; the saved name defaults to `<name>-updated.md`. Tick **Include source links in the export** to add a `[page title](url)` line after each clip. The toolbar badge shows how many clips you have.
+
+The integration tests install a temporary copy of the extension with a few test-only hooks (host permission, a collect trigger, no save dialog). They cannot press the real Alt+Shift+C shortcut or the native save dialog; check those by hand. Set `FIREFOX_BINARY` if Firefox is not in the default macOS location.

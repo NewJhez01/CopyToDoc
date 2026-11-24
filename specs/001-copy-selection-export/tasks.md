@@ -173,6 +173,31 @@ Single project at the repository root: `manifest.json`, `src/`, `tests/`, `icons
 
 ---
 
+## Phase 9: Clip counter and source links (FR-017, FR-018)
+
+- [X] T054 [P] Write failing tests in `tests/unit/clips.test.js` for `addClip(state, text, { url, title })`: stores `Clip.url` and `Clip.title` when valid, omits a missing or over-long `Clip.url`, collapses newlines and truncates `Clip.title` (data-model.md `Clip.url`, `Clip.title`), and `normalizeState` keeps string `url`/`title` and drops non-string ones
+- [X] T055 [P] Write failing tests in `tests/unit/document.test.js` for `composeDocument(base, clips, { includeSources })`: link `[title](url)` after the clip only when the option is true and a `url` exists, URL used as link text without a title, escaping of `[`, `]`, `\` in the text and of spaces and parentheses in the URL, strings still accepted as clips
+- [X] T056 Implement `Clip.url` and `Clip.title` handling in `src/core/clips.js` (`addClip` third argument, `normalizeState`) and the `includeSources` option in `src/core/document.js` (makes T054 and T055 pass)
+- [X] T057 In `src/background/background.js` pass the active tab's `url` and `title` to `addClip`, and make `exportDocument` accept `includeSources`
+- [X] T058 In `src/background/background.js` keep the toolbar badge equal to the clip count (empty at zero) on start-up and on every state change; the ✓ / ! confirmation overrides it for about 2 seconds and then the count is restored
+- [X] T059 In `src/manager/manager.html`, `manager.css` and `manager.js` add the "Include source links" checkbox (unchecked by default, remembered between popup openings), send it with the export, and show each clip's source below its text
+- [X] T060 Update `README.md` usage, run `npm test` and `npm run lint`
+- [X] T061 Manually verify in Firefox: badge count after adding and removing clips, confirmation then count again, export with the box unchecked and checked, a page with no title
+
+---
+
+## Phase 10: Integration tests
+
+**Approach (decided after a spike):** selenium-webdriver drives a real Firefox through geckodriver. Firefox's own Alt+Shift+C handler and the native save dialog cannot be driven by automation, so the tests build a temporary copy of the extension (the production files are untouched) that adds `host_permissions: ["<all_urls>"]` (stands in for the `activeTab` grant that the shortcut gives), a `test:collect` message that calls `collectSelection()`, and a wrapper that makes `downloads.download` use `saveAs: false` so the file lands in a temporary download folder. The extension page is opened in a tab via Firefox's browser (chrome) context, because WebDriver cannot navigate to `moz-extension://` URLs. The shortcut binding itself stays a manual check (T018).
+
+- [X] T062 Add dev dependencies `selenium-webdriver` and `geckodriver`, an `npm run test:integration` script with `vitest.config.js` (unit only, used by `npm test`) and `vitest.integration.config.js` (Firefox required for the integration run)
+- [X] T063 Create `tests/integration/helpers.js`: build the test copy of the extension into a temp dir, start a local HTTP page server, start Firefox (fixed extension UUID, temp download dir, `--allow-system-access`), install the add-on, open the manager page in a tab, and select text on the page
+- [X] T064 [P] Write `tests/integration/collect.test.js`: collecting adds a clip with text, page title and URL; the popup shows the count; removing a clip and Start over update the list
+- [X] T065 [P] Write `tests/integration/export.test.js`: load a `.md` file, collect two clips, export with and without "Include source links", and check the saved file content, that the original file is unchanged, and that the "Clear clips now?" prompt appears
+- [X] T066 Update `README.md` (how to run integration tests), run `npm test`, `npm run test:integration` and `npm run lint`, then commit
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

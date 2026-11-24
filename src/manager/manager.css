@@ -142,6 +142,9 @@ kbd {
 .hint { margin: 0; color: var(--muted); font-size: 0.78rem; }
 .warning { color: var(--danger); }
 .check { display: flex; gap: 0.4rem; align-items: center; }
+.option { margin-top: 0.75rem; color: var(--muted); }
+.clip-body { flex: 1; min-width: 0; }
+.clip-source { display: block; margin-top: 0.25rem; color: var(--muted); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 dialog {
   width: 21rem;

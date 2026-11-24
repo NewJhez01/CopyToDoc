@@ -23,14 +23,17 @@ One piece of selected text.
 |-------|------|-------|
 | `id` | string | Unique (random UUID); used for removal. |
 | `text` | string | Exactly the selected text, plain, max 1 MB. Not blank (whitespace-only is rejected). |
+| `url` | string, optional | Address of the page the text came from (top-level tab). Max 2048 characters; omitted if missing or longer. Stored locally only. |
+| `title` | string, optional | Page title. Newlines collapsed to spaces, max 300 characters. Used as the link text; the URL is used if there is no title. |
 
 Position is the array index in `state.clips`; new clips are appended at the end (FR-003, FR-005).
 
 ### Document (derived, not stored)
-`composeDocument(loadedFile?.content ?? "", clips.map(c => c.text))`. Rules:
+`composeDocument(loadedFile?.content ?? "", clips, { includeSources })`. Rules:
 - Base content is emitted unchanged.
 - Each clip is preceded by enough line breaks to leave one blank line after the previous content.
-- A single trailing `\n` follows the last clip.
+- With `includeSources` true and a clip that has a `url`, a blank line and the link `[title](url)` follow the clip text. In the link text `\`, `[` and `]` are escaped; in the URL spaces, `(`, `)`, `<` and `>` are percent-encoded. Clips without a `url` get no link.
+- A single trailing `\n` follows the last clip (or its link).
 - With zero clips the result equals the base content (but export is refused, see below).
 
 ### Export (transient)

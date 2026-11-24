@@ -22,14 +22,24 @@ function render() {
   list.replaceChildren(
     ...state.clips.map((clip) => {
       const item = document.createElement("li");
+      const body = document.createElement("div");
+      body.className = "clip-body";
       const text = document.createElement("pre");
       text.className = "clip-text";
       text.textContent = clip.text;
+      body.append(text);
+      if (clip.url) {
+        const source = document.createElement("span");
+        source.className = "clip-source";
+        source.textContent = `${clip.title || clip.url} · ${clip.url}`;
+        source.title = clip.url;
+        body.append(source);
+      }
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "Remove";
       remove.addEventListener("click", () => send("removeClip", { id: clip.id }));
-      item.append(text, remove);
+      item.append(body, remove);
       return item;
     }),
   );
@@ -85,7 +95,7 @@ async function handleExport() {
     setStatus("Nothing to export: there are no clips yet.", true);
     return;
   }
-  const result = await send("exportDocument");
+  const result = await send("exportDocument", { includeSources: $("include-sources").checked });
   if (result?.cancelled) setStatus("Export cancelled, nothing changed.");
   else if (!result?.ok) setStatus(result?.error ?? "Export failed. Your clips are untouched.", true);
   else if (result.savedToDownloads) setStatus("The save dialog was unavailable, so the file went to your Downloads folder.");
@@ -133,6 +143,10 @@ async function handleLoadClick() {
   window.close();
 }
 
+$("include-sources").checked = localStorage.getItem("includeSources") === "true";
+$("include-sources").addEventListener("change", (event) => {
+  localStorage.setItem("includeSources", String(event.target.checked));
+});
 $("load-button").addEventListener("click", handleLoadClick);
 $("file-input").addEventListener("change", handleFileChosen);
 $("export-button").addEventListener("click", handleExport);

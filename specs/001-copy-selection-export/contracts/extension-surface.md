@@ -32,7 +32,7 @@ User-facing and browser-facing interfaces of the extension.
 | Selection over 1 MB | Nothing added | "Selection too large (max 1 MB)" |
 | Storage failure | Nothing added | "Could not save the clip" |
 
-Badge clears after about 2 seconds.
+Badge clears after about 2 seconds, then returns to the clip count: the badge shows the number of clips at all times and is empty when there are none (FR-017).
 
 ## Manager page (shown in the toolbar popup)
 
@@ -41,7 +41,7 @@ Badge clears after about 2 seconds.
 | Load file | File picker for `.md`, `.markdown`, `.txt`; validates; shows name | FR-001, FR-002, FR-014 |
 | Load with existing clips | Dialog: keep clips / discard clips / cancel; warns that discarding unexported clips loses them | Clarification 2 |
 | Clip list | Clips in order, visually separate from loaded content; per-clip remove | FR-012 |
-| Export | Save-as dialog with pre-filled `<name>-updated.md`; refused with message if no clips | FR-008 to FR-010 |
+| Export | Save-as dialog with pre-filled `<name>-updated.md`; refused with message if no clips. Checkbox "Include source links" (unchecked by default) next to the button is sent as `includeSources` | FR-008 to FR-010, FR-018 |
 | After successful save | Prompt "Clear clips now?" default Yes | FR-011 |
 | Start over | Confirm; clears clips, optionally the loaded file | FR-012 |
 | Shortcut hint | Text pointing to Firefox's Manage Extension Shortcuts | FR-013 |
